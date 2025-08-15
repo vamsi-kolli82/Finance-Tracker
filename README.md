@@ -1,4 +1,4 @@
-# Finance Tracker — Neon Dark Theme (Vanilla JS)
+# Finovate Dashboard
 
 A modern, offline-first **Personal Finance Tracker** with a **dark + neon** look, built using **only HTML, CSS, and vanilla JavaScript**. No frameworks, no backend. Data persists in **LocalStorage**. Includes responsive UI, filters, CSV export, and Canvas-based neon charts.
 
