@@ -1,4 +1,4 @@
-// ===== Utilities =====
+
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 const money = (n) => {
@@ -6,25 +6,24 @@ const money = (n) => {
   return val.toLocaleString(undefined, { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
 };
 
-// ===== State =====
-let expenses = []; // {id, date: 'YYYY-MM-DD', amount: number, category, notes}
+
+let expenses = []; 
 let filters = { from: '', to: '', category: '', min: '', max: '', q: '' };
 const LS_KEY = 'ft_expenses_v1_neon';
 const THEME_KEY = 'ft_theme_v1_neon';
 
-// ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
-  // Theme
+
   const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
   if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
   $('#themeToggle').textContent = savedTheme === 'light' ? '🌙' : '☀️';
 
-  // Data
+
   try {
     expenses = JSON.parse(localStorage.getItem(LS_KEY)) || [];
   } catch { expenses = []; }
 
-  // Set default date in form
+
   $('#date').value = new Date().toISOString().slice(0, 10);
 
   bindEvents();
@@ -32,21 +31,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function bindEvents() {
-  // Theme toggle
+
   $('#themeToggle').addEventListener('click', () => {
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
     document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
     localStorage.setItem(THEME_KEY, isLight ? 'dark' : 'light');
     $('#themeToggle').textContent = isLight ? '☀️' : '🌙';
-    renderCharts(); // redraw for theme
+    renderCharts(); 
   });
 
-  // Mobile menu
+
   $('#menuToggle').addEventListener('click', () => {
     $('#mobileMenu').classList.toggle('open');
   });
 
-  // Form submit
+
   $('#expenseForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const id = $('#expenseId').value.trim();
@@ -55,21 +54,21 @@ function bindEvents() {
     const category = $('#category').value;
     const notes = $('#notes').value.trim();
 
-    // Validation
+
     if (!date || !category || !(amount > 0)) {
       alert('Please enter valid date, category, and a positive amount.');
       return;
     }
 
     if (id) {
-      // Update existing
+
       const idx = expenses.findIndex((x) => x.id === id);
       if (idx !== -1) {
         expenses[idx] = { ...expenses[idx], date, amount, category, notes };
       }
       $('#formTitle').textContent = 'Add Expense';
     } else {
-      // Create new
+
       const newItem = {
         id: String(Date.now()) + Math.random().toString(36).slice(2, 7),
         date,
@@ -87,13 +86,13 @@ function bindEvents() {
     $('#expenseId').value = '';
   });
 
-  // Reset button: back to add mode
+
   $('#resetBtn').addEventListener('click', () => {
     $('#expenseId').value = '';
     $('#formTitle').textContent = 'Add Expense';
   });
 
-  // Filters
+
   $('#applyFilters').addEventListener('click', () => {
     filters = {
       from: $('#fromDate').value,
@@ -117,13 +116,13 @@ function bindEvents() {
     renderAll();
   });
 
-  // Live search
+
   $('#searchNotes').addEventListener('input', (e) => {
     filters.q = e.target.value.trim().toLowerCase();
     renderAll();
   });
 
-  // Export CSV
+
   $('#exportCsvBtn').addEventListener('click', () => {
     const rows = [['Date','Amount','Category','Notes']];
     getFiltered().forEach(({date, amount, category, notes}) => {
@@ -146,7 +145,7 @@ function persist() {
   localStorage.setItem(LS_KEY, JSON.stringify(expenses));
 }
 
-// ===== Rendering =====
+
 function renderAll() {
   renderTable();
   renderKpis();
@@ -247,7 +246,7 @@ function groupByCategory(arr) {
   return arr.reduce((acc, x) => { acc[x.category] = (acc[x.category] || 0) + x.amount; return acc; }, {});
 }
 
-// ===== Charts (Canvas, no libs) =====
+
 function renderCharts() {
   const pieCanvas = $('#pieChart');
   const lineCanvas = $('#lineChart');
@@ -286,7 +285,6 @@ function drawPie(canvas, byCat) {
     ctx.shadowBlur = 0;
     ctx.stroke();
 
-    // label
     const mid = start + ang/2; const lx = cx + Math.cos(mid) * (r + 16); const ly = cy + Math.sin(mid) * (r + 16);
     ctx.fillStyle = '#e6f1ff';
     ctx.font = '12px system-ui';
@@ -302,7 +300,7 @@ function drawLine(canvas, data) {
   const w = canvas.width, h = canvas.height; clearCanvas(ctx,w,h);
   if (!data.length) { drawEmpty(ctx, w, h, 'No data'); return; }
 
-  // Aggregate by date
+
   const map = new Map();
   data.forEach(d => map.set(d.date, (map.get(d.date) || 0) + d.amount));
   const points = [...map.entries()].sort((a,b) => a[0].localeCompare(b[0]));
@@ -312,7 +310,7 @@ function drawLine(canvas, data) {
   const maxY = Math.max(...points.map(p => p[1])) || 1;
   const ys = points.map(p => padding + innerH - (p[1]/maxY)*innerH);
 
-  // Axes & grid
+
   ctx.strokeStyle = 'rgba(230,241,255,0.2)'; ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(padding, padding); ctx.lineTo(padding, h-padding); ctx.lineTo(w-padding, h-padding);
@@ -326,7 +324,7 @@ function drawLine(canvas, data) {
     ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(w-padding, y); ctx.stroke();
   }
 
-  // Line with glow
+
   ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2.5;
   ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 12;
   ctx.beginPath();
@@ -334,11 +332,11 @@ function drawLine(canvas, data) {
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Points
+
   ctx.fillStyle = '#00e5ff';
   xs.forEach((x,i) => { const y = ys[i]; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill(); });
 
-  // X labels (sparse)
+
   ctx.fillStyle = '#93a4bf';
   points.forEach((p,i) => {
     if (i % Math.ceil(points.length/6 || 1) === 0 || i === points.length-1) {
